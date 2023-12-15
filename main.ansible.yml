@@ -1,0 +1,33 @@
+---
+- name: Init Docker
+  hosts: app
+  tasks:
+    - name: Install Docker
+      become: true
+      ansible.builtin.package:
+        name: docker
+        state: present
+    - name: Start Docker daemon
+      become: true
+      ansible.builtin.service:
+        name: docker
+        state: started
+- name: Init Postgres server
+  hosts: database
+  tasks:
+    - name: Intsall Postgres server
+      become: true
+      ansible.builtin.apt:
+        name: 'postgresql-{{ postgres_version }}'
+        state: present
+    - name: Change Postgres data dir
+      become: true
+      ansible.builtin.lineinfile:
+        path: '/etc/postgresql/{{ postgres_version }}/main/postgresql.conf'
+        regexp: '^data_directory'
+        line: 'data_directory = ''{{ postgres_data_dir }}'''
+    - name: Start Postgres server
+      become: true
+      ansible.builtin.service:
+        name: postgresql
+        state: started
